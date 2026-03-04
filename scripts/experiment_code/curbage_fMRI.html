@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>curbage_fMRI</title>
+    <script src="jspsych/jspsych.js"></script>
+    <script src="jspsych/plugin-html-keyboard-response.js"></script>
+    <script src="jspsych/plugin-initialize-microphone.js"></script>
+    <script src="jspsych/plugin-video-keyboard-response.js"></script>
+    <script src="jspsych/plugin-html-audio-response.js"></script>
+    <script src="jspsych/plugin-html-audio-keyboard-response.js"></script>
+    <script src="jspsych/plugin-fullscreen.js"></script>
+    <script src="jspsych/plugin-html-button-response.js"></script>
+    <script src="jspsych/plugin-html-slider-keyboard-response.js"></script>
+    <script src="jspsych/plugin-image-keyboard-response.js"></script>
+    <script src="jspsych/plugin-survey-text.js"></script>
+    <script src="stimuli/curbage_fMRI_stimuli.js"></script>
+    <link href="jspsych/jspsych.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body></body>
+  <script>
+    /* curbage_fMRI: Encoding, Recall */
+ 
+    // keyboard button responses //
+    // R: Index Finger
+    // G: Middle Finger
+    // Y: Ring Finger
+    // B: Pinky Finger
+
+    var jsPsych = initJsPsych({
+      on_trial_finish: function(data) {
+        if (run_number > 0) {
+          data.run_number = run_number;
+          data.run_time_ms = jsPsych.getTotalTime() - run_start_time;
+        }
+      },
+      on_finish: function () {
+        jsPsych.data.addProperties({subject: subject, group: group});
+        var file_name = 'sub-' + subject + '_group-' + group + '_curbage_fMRI.csv';
+        jsPsych.data.get().localSave('csv',file_name);
+      }
+    });
+
+    var subject = '';
+    var group = '';
+    var task_order = '';
+    var run_start_time = 0;
+    var run_number = 0;
+
+    var experiment_setup = {
+      type: jsPsychSurveyText,
+      questions: [
+        {prompt: 'Message to experimenter:<br>Enter Subject ID', name: 'subject_id', required: true}
+      ],
+      on_finish: function(data) {
+        subject = data.response.subject_id;
+      }
+    };
+
+    var group_selection = {
+      type: jsPsychHtmlButtonResponse,
+      stimulus: '<p>Message to experimenter:<br>Select Group</p>',
+      choices: ['Younger', 'Older'],
+      on_finish: function(data) {
+        group = data.response === 0 ? 'younger' : 'older';
+      }
+    };
+
+    var task_order_selection = {
+      type: jsPsychHtmlButtonResponse,
+      stimulus: '<p>Message to experimenter:<br>Select Recognition Task Order</p>',
+      choices: ['Narrative First', 'Perceptual First'],
+      on_finish: function(data) {
+        task_order = data.response; // 0 = Narrative First, 1 = Perceptual First
+      }
+    };
+    
+    /* initialize microphone */
+    const initialize_mic = {
+        type: jsPsychInitializeMicrophone,
+        data: {'task': 'initialize_mic', 'stimulus_item': 'instructions'}
+    };
+
+    var audio_check = {
+      type: jsPsychHtmlButtonResponse,
+      stimulus: instructions_audio_check,
+      choices: ['Yes, I have tested the audio and microphone.'],
+      data: {'task': 'audio_check', 'stimulus_item': 'instructions'}
+    };
+
+    var fullscreen = {
+      type: jsPsychFullscreen,
+      fullscreen_mode: true,
+      data: {'task': 'full_screen', 'stimulus_item': 'instructions'}
+    };
+
+    var scanner_message = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: '<p>Waiting on scanner...</p>',
+      choices: 't',
+      response_ends_trial: true, 
+      data: {'task': 'scanner_message', 'stimulus_item': 'instructions'},
+      on_finish: function(data) {
+        run_number++;
+        run_start_time = jsPsych.getTotalTime();
+        data.run_event = 'onset';
+      }
+    };
+
+    var padding = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: '<div style="font-size:60px;">+</div>',
+      choices: 'NO_KEYS',
+      trial_duration: 10000,
+      response_ends_trial: false, 
+      data: {'task': 'end_fixation', 'stimulus_item': 'instructions'},
+      on_finish: function(data) {
+        data.run_event = 'offset';
+      }
+    };
+
+    var welcome = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: welcome_instructions,
+      choices: ' ',
+      data: {'task': 'welcome', 'stimulus_item': 'instructions'}
+    };
+
+    var pause = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: instructions_pause,
+      choices: ' ',
+      data: {'task': 'pause', 'stimulus_item': 'instructions'}
+    };
+
+    var encoding_instructions = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: instructions_encoding,
+      choices: ' ',
+      data: {'task': 'encoding', 'stimulus_item': 'instructions'}
+    };
+
+    var narrative_recognition_instructions = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: instructions_narrative_recognition,
+      choices: [' '],
+      response_ends_trial: true,
+      data: {'task': 'narrative_recognition_test', 'stimulus_item': 'instructions'}
+    };
+    
+    var perceptual_recognition_instructions = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: instructions_perceptual_recognition,
+      choices: [' '],
+      response_ends_trial: true,
+      data: {'task': 'perceptual_recognition_test', 'stimulus_item': 'instructions'}
+    }; 
+
+    var recall_instructions = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: instructions_recall,
+      choices: ' ',
+      data: {'task': 'recall', 'stimulus_item': 'instructions'}
+    };
+  
+    var exit = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: instructions_exit_session,
+      choices: ' ',
+      data: {'task': 'exit', 'stimulus_item': 'instructions'}
+    };
+
+    var field_map = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: instructions_field_map,
+      choices: ' ',
+      data: {'task': 'fieldmap', 'stimulus_item': 'instructions'}
+    };
+
+    var encoding = {
+      type: jsPsychVideoKeyboardResponse,
+      stimulus: ['stimuli/curb_your_enthusiasm_s01e07.mp4'],
+      height: 1000,
+      choices: 'NO_KEYS',
+      trial_ends_after_video: true,
+      data: {'task': 'encoding', 'stimulus_item': 'video_encoding'}
+      };
+
+    // recognition //
+    var recognition_narrative = {
+      timeline: [{
+        // fixation cross 
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: '<div style="font-size:60px;">+</div>',
+        choices: 'NO_KEYS',
+        trial_duration: 5000,
+        response_ends_trial: false,
+        data: {'task': 'narrative_recognition_test', 'stimulus_item': 'fixation'}
+      },
+      {
+        // sentences
+        type: jsPsychHtmlKeyboardResponse,
+        prompt: '<div style="font-size:36px;"><br><p>Index Finger: True&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Middle Finger: False</br></p></div>',
+        stimulus: function(){
+          var stim = '<p style="font-size:36px;">'+jsPsych.timelineVariable('stimulus')+'</p>';
+          return stim;
+        },
+        choices: ['r','g'],
+        data: {'task': 'narrative_recognition_test', 'stimulus_item': 'narrative_recognition_test', 'item':jsPsych.timelineVariable('item'),'stimulus':jsPsych.timelineVariable('stimulus'),'correct_response':jsPsych.timelineVariable('correct_response'),'type':jsPsych.timelineVariable('type')}
+      }
+      ],
+        timeline_variables: narrative_recognition_test,
+        randomize_order: true
+    };
+
+    var recognition_perceptual = {
+      timeline: [{
+        // fixation cross 
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: '<div style="font-size:60px;">+</div>',
+        choices: 'NO_KEYS',
+        trial_duration: 5000,
+        response_ends_trial: false,
+        data: {'task': 'perceptual_recognition_test', 'stimulus_item': 'fixation'}
+      },
+      {
+        // images
+        type: jsPsychImageKeyboardResponse,
+        prompt: '<div style="font-size:36px;"><br><p>Index Finger: True&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Middle Finger: False</br></p></div>',
+        stimulus: jsPsych.timelineVariable('stimulus'),
+        stimulus_width: 800, 
+        stimulus_height: 600,
+        choices: ['r','g'],
+        data: {'task': 'perceptual_recognition_test', 'stimulus_item': 'perceptual_recognition_test', 'item':jsPsych.timelineVariable('item'),'stimulus':jsPsych.timelineVariable('stimulus'),'correct_response':jsPsych.timelineVariable('correct_response'),'type':jsPsych.timelineVariable('type')}
+    }
+      ],
+        timeline_variables: perceptual_recognition_test,
+        randomize_order: true
+    };
+
+    var recall = {
+      type: jsPsychHtmlAudioKeyboardResponse,
+      stimulus: instructions_recall_finish,
+      recording_duration: 1800000, // 30 minutes
+      show_done_button: false,
+      data: {'task': 'recall', 'stimulus_item': 'video_recall'}
+    };
+
+    var recognition_narrative_first = {
+      timeline: [narrative_recognition_instructions, scanner_message, recognition_narrative, padding, pause, perceptual_recognition_instructions, scanner_message, recognition_perceptual, padding, pause],
+      conditional_function: function() {
+        return task_order === 0;
+      }
+    };
+
+    var recognition_perceptual_first = {
+      timeline: [perceptual_recognition_instructions, scanner_message, recognition_perceptual, padding, pause, narrative_recognition_instructions, scanner_message, recognition_narrative, padding, pause],
+      conditional_function: function() {
+        return task_order === 1;
+      }
+    };
+
+    jsPsych.run([
+        experiment_setup,
+        group_selection,
+        task_order_selection,
+        initialize_mic,
+        audio_check,
+        fullscreen,
+        welcome,
+        field_map,
+        encoding_instructions,
+        scanner_message,
+        encoding,
+        padding,
+        pause,
+        // recognition_narrative_first,
+        // recognition_perceptual_first,
+        recall_instructions,
+        scanner_message,
+        recall,
+        padding,
+        pause,
+        field_map,
+        exit
+    ]);
+
+  </script>
+</html>

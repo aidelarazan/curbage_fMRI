@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>curbage_fMRI_audio_test</title>
+    <script src="jspsych/jspsych.js"></script>
+    <script src="jspsych/plugin-html-keyboard-response.js"></script>
+    <script src="jspsych/plugin-initialize-microphone.js"></script>
+    <script src="jspsych/plugin-video-keyboard-response.js"></script>
+    <script src="jspsych/plugin-html-audio-response.js"></script>
+    <script src="jspsych/plugin-html-audio-keyboard-response.js"></script>
+    <script src="jspsych/plugin-fullscreen.js"></script>
+    <script src="jspsych/plugin-html-button-response.js"></script>
+    <script src="jspsych/plugin-html-slider-keyboard-response.js"></script>
+    <script src="jspsych/plugin-survey-text.js"></script>
+    <script src="stimuli/curbage_fMRI_stimuli.js"></script>
+    <link href="jspsych/jspsych.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body></body>
+  <script>
+    /* curbage_fMRI: Encoding, Recall */
+
+    // keyboard button responses //
+    // R: Index Finger
+    // G: Middle Finger
+    // Y: Ring Finger
+    // B: Pinky Finger
+
+    /* initialize jsPsych */
+    var jsPsych = initJsPsych({
+      on_finish: function () {
+      jsPsych.data.addProperties({subject: subject});
+      var file_name = 'sub-' + subject + '_group-' + group + '_curbage_fMRI.csv';
+      jsPsych.data.get().localSave('csv',file_name);
+    }});
+
+    var subject = '';
+    var group = '';
+
+    var experiment_setup = {
+      type: jsPsychSurveyText,
+      questions: [
+        {prompt: 'Message to experimenter:<br>Enter Subject ID', name: 'subject_id', required: true}
+      ],
+      on_finish: function(data) {
+        subject = data.response.subject_id;
+      }
+    };
+
+    var group_selection = {
+      type: jsPsychHtmlButtonResponse,
+      stimulus: '<p>Message to experimenter:<br>Select Group</p>',
+      choices: ['Younger', 'Older'],
+      on_finish: function(data) {
+        group = data.response === 0 ? 'younger' : 'older';
+      }
+    };
+    
+    /* initialize microphone */
+    const initialize_mic = {
+        type: jsPsychInitializeMicrophone
+    };
+
+    var audio_test_instructions = {
+      // scanner_message 
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: instructions_overview_audio_test,
+      choices: ' ',
+      response_ends_trial: true, 
+      data: {'task': 'audio_test'}
+    }
+
+    var audio_test = {
+        type: jsPsychHtmlAudioResponse,
+        stimulus: instructions_audio_test,
+        recording_duration: 300000,
+        allow_playback: true,
+        data: {'task': 'audio_test'}
+    };
+
+      var exit = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: instructions_audio_test_exit,
+      choices: ' ',
+      data: {'task': 'exit'}
+    }
+
+    jsPsych.run([
+        experiment_setup,
+        group_selection,
+        initialize_mic,
+        audio_test_instructions,
+        audio_test,
+        exit
+    ]);
+
+  </script>
+</html>
