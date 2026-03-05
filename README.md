@@ -3,7 +3,7 @@
 
 
 ## Project Description
-[PsyArXiv Preprint](https://osf.io/preprints/psyarxiv/paq8e_v1)
+[PsyArXiv Preprint](https://osf.io/preprints/psyarxiv/qnrgd_v1)
 
 [Open Science Framework](https://osf.io/tmjxr/overview)
 
